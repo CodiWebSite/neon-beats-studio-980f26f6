@@ -1,10 +1,11 @@
-import { Music2, Instagram, Facebook, Youtube, Heart } from "lucide-react";
+import { Instagram, Facebook, Heart } from "lucide-react";
+import logo from "../../Document.png";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const quickLinks = [
-    { href: "#home", label: "Home" },
+    { href: "#home", label: "Acasă" },
     { href: "#services", label: "Servicii" },
     { href: "#gallery", label: "Galerie" },
     { href: "#about", label: "Despre" },
@@ -38,13 +39,9 @@ const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <a href="#home" onClick={(e) => { e.preventDefault(); scrollToSection("#home"); }} className="flex items-center gap-3 mb-6">
-              <Music2 className="w-10 h-10 text-neon-cyan" />
-              <span className="font-display text-xl font-bold tracking-wider">
-                <span className="text-neon-cyan">DJ</span>{" "}
-                <span className="text-foreground">FUNKY</span>
-              </span>
+              <img src={logo} alt="DJ Funky Events" className="h-20 md:h-24 w-auto rounded-md" />
             </a>
-            <p className="text-muted-foreground mb-6">
+              <p className="text-sm text-muted-foreground">
               Transformăm fiecare eveniment într-o experiență de neuitat. 
               Muzică, lumini și energie pentru cele mai speciale momente din viața ta.
             </p>
@@ -61,12 +58,7 @@ const Footer = () => {
               >
                 <Facebook className="w-4 h-4 text-muted-foreground group-hover:text-neon-magenta transition-colors" />
               </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-lg bg-muted/50 border border-white/10 flex items-center justify-center hover:bg-neon-purple/10 hover:border-neon-purple/30 transition-all duration-300 group"
-              >
-                <Youtube className="w-4 h-4 text-muted-foreground group-hover:text-neon-purple transition-colors" />
-              </a>
+              
             </div>
           </div>
 
@@ -110,15 +102,15 @@ const Footer = () => {
               Contact
             </h4>
             <div className="space-y-3 text-muted-foreground">
-              <p>București, România</p>
+              <p>Iași, România</p>
               <p>
-                <a href="tel:+40721234567" className="hover:text-neon-cyan transition-colors">
-                  +40 721 234 567
+                <a href="tel:+40755649856" className="hover:text-neon-cyan transition-colors">
+                  +40 755 649 856
                 </a>
               </p>
               <p>
-                <a href="mailto:contact@djfunky.ro" className="hover:text-neon-cyan transition-colors">
-                  contact@djfunky.ro
+                <a href="mailto:contact@djfunyevents.ro" className="hover:text-neon-cyan transition-colors">
+                  contact@djfunyevents.ro
                 </a>
               </p>
             </div>

@@ -6,48 +6,46 @@
 
 @layer base {
   :root {
-    --background: 230 50% 5%;
+    --background: 225 15% 6%;
     --foreground: 0 0% 98%;
 
-    --card: 230 40% 8%;
+    --card: 225 15% 8%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 230 40% 8%;
+    --popover: 225 15% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 190 100% 50%;
-    --primary-foreground: 230 50% 5%;
+    --primary: 48 100% 50%;
+    --primary-foreground: 225 20% 6%;
 
-    --secondary: 300 100% 50%;
+    --secondary: 166 92% 45%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 230 30% 15%;
-    --muted-foreground: 230 10% 60%;
+    --muted: 225 10% 18%;
+    --muted-foreground: 225 8% 65%;
 
-    --accent: 270 100% 65%;
+    --accent: 283 95% 62%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 230 30% 20%;
-    --input: 230 30% 15%;
-    --ring: 190 100% 50%;
+    --border: 225 12% 22%;
+    --input: 225 12% 18%;
+    --ring: 48 100% 50%;
 
     --radius: 0.75rem;
 
-    /* Custom neon colors */
-    --neon-cyan: 190 100% 50%;
-    --neon-magenta: 300 100% 50%;
-    --neon-purple: 270 100% 65%;
-    --neon-pink: 330 100% 60%;
+    --neon-cyan: 166 92% 45%;
+    --neon-magenta: 30 100% 55%;
+    --neon-purple: 283 95% 62%;
+    --neon-pink: 340 90% 60%;
     --neon-blue: 210 100% 60%;
 
-    /* Gradients */
-    --gradient-neon: linear-gradient(135deg, hsl(var(--neon-cyan)), hsl(var(--neon-magenta)), hsl(var(--neon-purple)));
-    --gradient-hero: linear-gradient(180deg, hsl(230 50% 3%) 0%, hsl(230 50% 8%) 50%, hsl(270 40% 10%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(230 40% 10% / 0.8), hsl(230 40% 5% / 0.9));
-    --gradient-glow: linear-gradient(135deg, hsl(var(--neon-cyan) / 0.3), hsl(var(--neon-magenta) / 0.3));
+    --gradient-neon: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--accent)));
+    --gradient-hero: linear-gradient(180deg, hsl(225 15% 4%) 0%, hsl(225 15% 10%) 50%, hsl(260 20% 12%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(225 15% 12% / 0.8), hsl(225 15% 6% / 0.9));
+    --gradient-glow: linear-gradient(135deg, hsl(var(--primary) / 0.3), hsl(var(--accent) / 0.3));
 
     /* Shadows */
     --shadow-neon-cyan: 0 0 20px hsl(var(--neon-cyan) / 0.5), 0 0 40px hsl(var(--neon-cyan) / 0.3);
@@ -113,6 +111,16 @@
 }
 
 @layer utilities {
+  .marquee {
+    overflow: hidden;
+    position: relative;
+  }
+  .marquee-track {
+    display: inline-block;
+    white-space: nowrap;
+    will-change: transform;
+    animation: marquee 18s linear infinite;
+  }
   .text-glow-cyan {
     text-shadow: 0 0 10px hsl(var(--neon-cyan)), 0 0 20px hsl(var(--neon-cyan) / 0.5);
   }
@@ -135,6 +143,18 @@
 
   .animate-laser {
     animation: laser-sweep 4s linear infinite;
+  }
+  .equalizer {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .eq-bar {
+    width: 6px;
+    height: 24px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    animation: equalizer 1.4s ease-in-out infinite;
   }
 }
 
@@ -183,6 +203,29 @@
     background-position: 100% 50%;
   }
 }
+
+@keyframes equalizer {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.8; }
+  50% { transform: scaleY(1.4); opacity: 1; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.equalizer .eq-bar:nth-child(1) { animation-delay: 0s; }
+.equalizer .eq-bar:nth-child(2) { animation-delay: 0.1s; }
+.equalizer .eq-bar:nth-child(3) { animation-delay: 0.2s; }
+.equalizer .eq-bar:nth-child(4) { animation-delay: 0.3s; }
+.equalizer .eq-bar:nth-child(5) { animation-delay: 0.4s; }
+.equalizer .eq-bar:nth-child(6) { animation-delay: 0.5s; }
+.equalizer .eq-bar:nth-child(7) { animation-delay: 0.6s; }
+.equalizer .eq-bar:nth-child(8) { animation-delay: 0.7s; }
+.equalizer .eq-bar:nth-child(9) { animation-delay: 0.8s; }
+.equalizer .eq-bar:nth-child(10) { animation-delay: 0.9s; }
+.equalizer .eq-bar:nth-child(11) { animation-delay: 1s; }
+.equalizer .eq-bar:nth-child(12) { animation-delay: 1.1s; }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {

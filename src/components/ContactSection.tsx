@@ -3,6 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Phone, Mail, Instagram, Facebook, Send, Calendar } from "lucide-react";
+function TikTokIcon(props: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={props.className}>
+      <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3z"/>
+    </svg>
+  );
+}
 import { useToast } from "@/hooks/use-toast";
 
 const ContactSection = () => {
@@ -16,20 +23,24 @@ const ContactSection = () => {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Mesaj trimis cu succes! 🎉",
-      description: "Te vom contacta în cel mai scurt timp posibil.",
-    });
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      eventType: "",
-      date: "",
-      message: "",
-    });
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (res.ok) {
+        toast({ title: "Mesaj trimis cu succes! 🎉", description: "Te vom contacta în cel mai scurt timp posibil." });
+        setFormData({ name: "", email: "", phone: "", eventType: "", date: "", message: "" });
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast({ title: "Eroare la trimitere", description: data?.error || "Încearcă din nou sau contactează-ne direct.", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Eroare de rețea", description: "Nu am putut trimite cererea.", variant: "destructive" });
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -159,17 +170,27 @@ const ContactSection = () => {
           {/* Contact Info */}
           <div className="flex flex-col gap-6">
             {/* Contact Cards */}
-            <div className="glass-card p-6 flex items-center gap-4 hover:border-neon-cyan/30 transition-colors duration-300">
-              <div className="w-12 h-12 rounded-xl bg-neon-cyan/10 border border-neon-cyan/20 flex items-center justify-center">
-                <Phone className="w-5 h-5 text-neon-cyan" />
+              <div className="glass-card p-6 flex items-center gap-4 hover:border-neon-cyan/30 transition-colors duration-300">
+                <div className="w-12 h-12 rounded-xl bg-neon-cyan/10 border border-neon-cyan/20 flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-neon-cyan" />
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Telefon</div>
+                  <div className="flex items-center gap-3">
+                    <a href="tel:+40755649856" className="font-display text-lg text-foreground hover:text-neon-cyan transition-colors">
+                      +40 755 649 856
+                    </a>
+                    <a
+                      href="https://wa.me/40755649856"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm px-3 py-1 rounded-full border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/10 transition-colors"
+                    >
+                      WhatsApp
+                    </a>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Telefon</div>
-                <a href="tel:+40721234567" className="font-display text-lg text-foreground hover:text-neon-cyan transition-colors">
-                  +40 721 234 567
-                </a>
-              </div>
-            </div>
 
             <div className="glass-card p-6 flex items-center gap-4 hover:border-neon-magenta/30 transition-colors duration-300">
               <div className="w-12 h-12 rounded-xl bg-neon-magenta/10 border border-neon-magenta/20 flex items-center justify-center">
@@ -177,8 +198,8 @@ const ContactSection = () => {
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Email</div>
-                <a href="mailto:contact@djfunky.ro" className="font-display text-lg text-foreground hover:text-neon-magenta transition-colors">
-                  contact@djfunky.ro
+                <a href="mailto:contact@djfunyevents.ro" className="font-display text-lg text-foreground hover:text-neon-magenta transition-colors">
+                  contact@djfunyevents.ro
                 </a>
               </div>
             </div>
@@ -190,7 +211,7 @@ const ContactSection = () => {
               <div>
                 <div className="text-sm text-muted-foreground">Locație</div>
                 <div className="font-display text-lg text-foreground">
-                  București, România
+                  Iași, România
                 </div>
               </div>
             </div>
@@ -212,16 +233,22 @@ const ContactSection = () => {
               <div className="text-sm text-muted-foreground mb-4">Urmărește-ne</div>
               <div className="flex gap-4">
                 <a
-                  href="#"
+                  href="https://www.instagram.com/instadjfunky/"
                   className="w-12 h-12 rounded-xl bg-muted/50 border border-white/10 flex items-center justify-center hover:bg-neon-cyan/10 hover:border-neon-cyan/30 transition-all duration-300 group"
                 >
                   <Instagram className="w-5 h-5 text-muted-foreground group-hover:text-neon-cyan transition-colors" />
                 </a>
                 <a
-                  href="#"
+                  href="https://www.facebook.com/condreacodrin"
                   className="w-12 h-12 rounded-xl bg-muted/50 border border-white/10 flex items-center justify-center hover:bg-neon-magenta/10 hover:border-neon-magenta/30 transition-all duration-300 group"
                 >
                   <Facebook className="w-5 h-5 text-muted-foreground group-hover:text-neon-magenta transition-colors" />
+                </a>
+                <a
+                  href="http://tiktok.com/@djfunkyevents"
+                  className="w-12 h-12 rounded-xl bg-muted/50 border border-white/10 flex items-center justify-center hover:bg-neon-purple/10 hover:border-neon-purple/30 transition-all duration-300 group"
+                >
+                  <TikTokIcon className="w-5 h-5 text-muted-foreground group-hover:text-neon-purple transition-colors" />
                 </a>
               </div>
             </div>

@@ -1,0 +1,15 @@
+RewriteEngine On
+RewriteBase /
+
+# Serve existing files or directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Exclude API routes from SPA fallback (for future backend integration)
+RewriteCond %{REQUEST_URI} ^/api/ [NC]
+RewriteRule ^ - [L]
+
+# Fallback all other routes to index.html (React Router)
+RewriteRule . /index.html [L]
+

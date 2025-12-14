@@ -23,15 +23,7 @@ const HeroSection = () => {
       {/* Overlay Gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
       
-      {/* Animated Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-cyan/20 rounded-full blur-[120px] animate-pulse-glow" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-magenta/20 rounded-full blur-[100px] animate-pulse-glow" style={{ animationDelay: "1s" }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-neon-purple/10 rounded-full blur-[150px] animate-pulse-glow" style={{ animationDelay: "0.5s" }} />
-
-      {/* Laser Lines */}
-      <div className="absolute top-20 left-0 right-0 h-px laser-line" style={{ ["--laser-angle" as string]: "0deg" }} />
-      <div className="absolute top-40 left-0 right-0 h-px laser-line" style={{ ["--laser-angle" as string]: "0deg", animationDelay: "1s" }} />
-      <div className="absolute bottom-40 left-0 right-0 h-px laser-line" style={{ ["--laser-angle" as string]: "0deg", animationDelay: "2s" }} />
+      
 
       {/* Grid Pattern */}
       <div 
@@ -52,7 +44,7 @@ const HeroSection = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neon-cyan/30 bg-neon-cyan/5 mb-8 animate-fade-in">
             <span className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
             <span className="font-display text-xs tracking-widest text-neon-cyan uppercase">
-              Premium DJ Entertainment
+              DJ pentru Evenimente Premium
             </span>
           </div>
 
@@ -64,11 +56,16 @@ const HeroSection = () => {
             <span className="text-foreground text-3xl md:text-5xl lg:text-6xl">EVENTS</span>
           </h1>
 
-          {/* Subtitle */}
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
             Transformăm fiecare eveniment într-o experiență memorabilă. 
             Muzică, lumini și energie pentru petreceri de neuitat.
           </p>
+
+          <div className="marquee mt-4 animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
+            <div className="marquee-track font-display text-xs md:text-sm tracking-widest text-muted-foreground">
+              NUNȚI • MAJORATE • CORPORATE • CLUB SHOWS • FESTIVALURI • PETRECERI PRIVATE — NUNȚI • MAJORATE • CORPORATE • CLUB SHOWS • FESTIVALURI • PETRECERI PRIVATE — 
+            </div>
+          </div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
@@ -112,11 +109,10 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 rounded-full border-2 border-neon-cyan/50 flex items-start justify-center p-2">
-          <div className="w-1 h-2 rounded-full bg-neon-cyan animate-pulse" />
-        </div>
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 equalizer">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="eq-bar" />
+        ))}
       </div>
     </section>
   );

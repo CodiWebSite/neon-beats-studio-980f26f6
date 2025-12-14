@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Backend data (do not commit server-side admin data)
+public/api/data/

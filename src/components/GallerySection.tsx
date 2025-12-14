@@ -1,54 +1,51 @@
-import { useState } from "react";
-import { Play, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-const galleryItems = [
-  {
-    id: 1,
-    type: "image",
-    title: "Nuntă de Vis",
-    category: "Nunți",
-  },
-  {
-    id: 2,
-    type: "image",
-    title: "Club Night",
-    category: "Club Shows",
-  },
-  {
-    id: 3,
-    type: "image",
-    title: "Corporate Gala",
-    category: "Corporate",
-  },
-  {
-    id: 4,
-    type: "image",
-    title: "Majorat Epic",
-    category: "Majorate",
-  },
-  {
-    id: 5,
-    type: "image",
-    title: "Festival Stage",
-    category: "Festivaluri",
-  },
-  {
-    id: 6,
-    type: "image",
-    title: "Private Party",
-    category: "Petreceri Private",
-  },
-];
+type SocialItem = { id: string; platform: "tiktok" | "instagram"; url: string };
 
-const categories = ["Toate", "Nunți", "Club Shows", "Corporate", "Majorate", "Festivaluri", "Petreceri Private"];
+function ensureScript(src: string) {
+  const exists = document.querySelector(`script[src="${src}"]`);
+  if (!exists) {
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = src;
+    document.body.appendChild(s);
+  }
+}
+
+function extractTikTokVideoId(url: string): string | undefined {
+  const m = url.match(/video\/(\d+)/);
+  return m?.[1];
+}
 
 const GallerySection = () => {
-  const [activeCategory, setActiveCategory] = useState("Toate");
-  const [selectedItem, setSelectedItem] = useState<number | null>(null);
+  const [items, setItems] = useState<SocialItem[]>([]);
 
-  const filteredItems = activeCategory === "Toate" 
-    ? galleryItems 
-    : galleryItems.filter(item => item.category === activeCategory);
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/admin_get.php");
+        const data = await res.json();
+        setItems(data?.gallery || []);
+      } catch (e) {
+        setItems([]);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    ensureScript("https://www.instagram.com/embed.js");
+    ensureScript("https://www.tiktok.com/embed.js");
+    // Instagram requires explicit process for dynamically added embeds
+    setTimeout(() => {
+      // @ts-expect-error Instagram embed runtime injected by external script
+      if (window.instgrm && window.instgrm.Embeds && window.instgrm.Embeds.process) {
+        // @ts-expect-error Instagram embed runtime injected by external script
+        window.instgrm.Embeds.process();
+      }
+    }, 0);
+  }, [items]);
+
+  const hasItems = useMemo(() => items.length > 0, [items]);
 
   return (
     <section id="gallery" className="relative py-24 overflow-hidden">
@@ -70,88 +67,40 @@ const GallerySection = () => {
           </p>
         </div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              className={`px-5 py-2 rounded-full font-display text-sm tracking-wider transition-all duration-300 ${
-                activeCategory === category
-                  ? "bg-neon-cyan text-background shadow-[0_0_20px_hsl(var(--neon-cyan)/0.5)]"
-                  : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
+        
 
-        {/* Gallery Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item, index) => (
-            <div
-              key={item.id}
-              className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer"
-              onClick={() => setSelectedItem(item.id)}
-            >
-              {/* Placeholder Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/20 via-neon-purple/20 to-neon-magenta/20" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-6xl opacity-30">🎵</div>
+        {hasItems ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((item) => (
+              <div key={item.id} className="glass-card p-3">
+                {item.platform === "tiktok" && (
+                  <blockquote
+                    className="tiktok-embed"
+                    cite={item.url}
+                    data-video-id={extractTikTokVideoId(item.url) || undefined}
+                    style={{ maxWidth: 605, minWidth: 325 }}
+                  >
+                    <section />
+                  </blockquote>
+                )}
+                {item.platform === "instagram" && (
+                  <blockquote className="instagram-media" data-instgrm-permalink={item.url} data-instgrm-version="14" />
+                )}
+                
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="glass-card p-10 text-center">
+            <div className="font-display text-xl text-foreground mb-2">Galerie în curând</div>
+            <p className="text-muted-foreground">Adaugă linkuri de TikTok sau Instagram mai sus.</p>
+          </div>
+        )}
 
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-
-              {/* Content */}
-              <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                <span className="font-display text-xs tracking-widest text-neon-cyan uppercase mb-2">
-                  {item.category}
-                </span>
-                <h3 className="font-display text-xl font-semibold text-foreground group-hover:text-neon-cyan transition-colors duration-300">
-                  {item.title}
-                </h3>
-              </div>
-
-              {/* Play Button for Videos */}
-              {item.type === "video" && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-neon-cyan/20 backdrop-blur-sm border border-neon-cyan/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Play className="w-6 h-6 text-neon-cyan ml-1" />
-                </div>
-              )}
-
-              {/* Hover Border */}
-              <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-neon-cyan/50 transition-colors duration-300" />
-            </div>
-          ))}
-        </div>
-
-        {/* View More Button */}
-        <div className="text-center mt-12">
-          <button className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-neon-magenta/30 text-neon-magenta font-display text-sm tracking-wider hover:bg-neon-magenta/10 hover:border-neon-magenta/50 transition-all duration-300">
-            Vezi Mai Multe
-          </button>
-        </div>
+        
       </div>
 
-      {/* Lightbox */}
-      {selectedItem && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-xl"
-          onClick={() => setSelectedItem(null)}
-        >
-          <button 
-            className="absolute top-6 right-6 w-12 h-12 rounded-full bg-muted flex items-center justify-center hover:bg-neon-cyan/20 transition-colors"
-            onClick={() => setSelectedItem(null)}
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <div className="max-w-4xl w-full mx-4 aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-neon-cyan/20 via-neon-purple/20 to-neon-magenta/20 flex items-center justify-center">
-            <div className="text-8xl opacity-30">🎵</div>
-          </div>
-        </div>
-      )}
+      
     </section>
   );
 };
