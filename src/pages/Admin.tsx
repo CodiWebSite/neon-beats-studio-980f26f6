@@ -240,6 +240,8 @@ const Admin = () => {
     setAvailability(next);
     toast({ title: "Salvat", description: `Următoarele ${days} zile → ${st}` });
   }
+
+  async function addSocialItem() {
     const url = postUrl.trim();
     if (!url) return;
     if (platform === "tiktok" && !isValidTikTokUrl(url)) {
