@@ -39,6 +39,8 @@ const Admin = () => {
   const [month, setMonth] = useState<Date>(new Date());
   const [availability, setAvailability] = useState<AvailabilityMap>({});
   const [status, setStatus] = useState<Status>("occupied");
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
 
   const [gallery, setGallery] = useState<SocialItem[]>([]);
   const [platform, setPlatform] = useState<"tiktok" | "instagram">("tiktok");
