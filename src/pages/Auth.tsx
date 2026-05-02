@@ -12,9 +12,13 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session) navigate("/admin");
+    });
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate("/admin");
     });
+    return () => sub.subscription.unsubscribe();
   }, [navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -22,14 +26,19 @@ const AuthPage = () => {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: `${window.location.origin}/admin` },
         });
         if (error) throw error;
-        toast({ title: "Cont creat", description: "Te poți autentifica acum." });
-        setMode("login");
+        if (data.session) {
+          toast({ title: "Cont creat", description: "Bun venit!" });
+          navigate("/admin");
+        } else {
+          toast({ title: "Cont creat", description: "Verifică emailul pentru confirmare sau autentifică-te." });
+          setMode("login");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
