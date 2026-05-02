@@ -376,16 +376,48 @@ const Admin = () => {
             <button className="px-4 py-2 rounded-full border border-gold/20 hover:border-gold/40" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>Următor →</button>
           </div>
 
-          <div className="mb-3 flex gap-2 flex-wrap">
-            <span className="text-sm text-muted-foreground self-center">Click pe zi → setează:</span>
+          <div className="mb-3 flex gap-2 flex-wrap items-center">
+            <span className="text-sm text-muted-foreground">Status implicit:</span>
             {(["free","occupied","unavailable"] as Status[]).map((s) => (
               <button key={s} onClick={() => setStatus(s)} className={`px-3 py-1 rounded-full text-sm border ${status===s ? "border-gold bg-gold/20 text-gold" : "border-gold/20 text-muted-foreground"}`}>
                 {s === "free" ? "🟢 liber" : s === "occupied" ? "🔴 ocupat" : "⚪ indisponibil"}
               </button>
             ))}
+            <div className="ml-auto flex gap-2">
+              <button
+                onClick={() => { setBulkMode(!bulkMode); setSelectedDates([]); }}
+                className={`px-3 py-1 rounded-full text-sm border ${bulkMode ? "border-gold bg-gold/20 text-gold" : "border-gold/20 text-muted-foreground"}`}
+              >
+                {bulkMode ? "✓ Mod bulk activ" : "Activează bulk"}
+              </button>
+              <button onClick={resetMonth} className="px-3 py-1 rounded-full text-sm border border-bronze/40 text-bronze hover:bg-bronze/10">
+                Reset luna
+              </button>
+            </div>
+          </div>
+
+          {bulkMode && (
+            <div className="mb-3 p-3 rounded-lg bg-gold/5 border border-gold/20 flex flex-wrap gap-2 items-center">
+              <span className="text-sm text-gold">{selectedDates.length} zi(le) selectate.</span>
+              <span className="text-xs text-muted-foreground">Aplică:</span>
+              <button onClick={() => applyBulkStatus("free")} className="px-3 py-1 rounded-full text-sm bg-green-500/20 text-green-400 border border-green-500/30">🟢 liber</button>
+              <button onClick={() => applyBulkStatus("occupied")} className="px-3 py-1 rounded-full text-sm bg-red-500/20 text-red-400 border border-red-500/30">🔴 ocupat</button>
+              <button onClick={() => applyBulkStatus("unavailable")} className="px-3 py-1 rounded-full text-sm bg-white/10 text-white border border-white/20">⚪ indisponibil</button>
+              <button onClick={clearBulkSelection} className="px-3 py-1 rounded-full text-sm border border-bronze/40 text-bronze">Reset selecție la implicit</button>
+              <button onClick={() => setSelectedDates([])} className="px-3 py-1 rounded-full text-sm border border-gold/20 text-muted-foreground">Anulează</button>
+            </div>
+          )}
+
+          <div className="mb-3 flex flex-wrap gap-2 items-center">
+            <span className="text-xs text-muted-foreground">Acțiuni rapide:</span>
+            <button onClick={() => setRangeStatus("occupied", 7)} className="px-3 py-1 rounded-full text-xs border border-gold/20 hover:bg-gold/10">Ocupă următoarele 7 zile</button>
+            <button onClick={() => setRangeStatus("occupied", 14)} className="px-3 py-1 rounded-full text-xs border border-gold/20 hover:bg-gold/10">Ocupă următoarele 14 zile</button>
+            <button onClick={() => setRangeStatus("free", 7)} className="px-3 py-1 rounded-full text-xs border border-gold/20 hover:bg-gold/10">Liber 7 zile</button>
           </div>
 
           <DayPicker
+            mode={bulkMode ? "multiple" : undefined as any}
+            selected={bulkMode ? selectedDates : undefined}
             month={month}
             onMonthChange={setMonth}
             locale={ro}
@@ -395,9 +427,14 @@ const Admin = () => {
               occupied: "bg-red-500 text-background",
               unavailable: "bg-white text-background",
             }}
-            onDayClick={(d) => setDayStatus(d, status)}
+            onDayClick={handleDayClick}
             className="rdp text-sm"
           />
+          <p className="mt-3 text-xs text-muted-foreground">
+            {bulkMode
+              ? "Click pe zile pentru a le selecta/deselecta, apoi aplică un status în masă."
+              : "Click pe o zi pentru a-i seta statusul implicit ales mai sus."}
+          </p>
         </div>
 
         <div className="luxury-card p-6 mb-10">
