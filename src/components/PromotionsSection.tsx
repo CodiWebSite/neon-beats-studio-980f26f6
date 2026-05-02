@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-type PromoItem = { id: string; title: string; date?: string; location?: string; link?: string };
+type PromoItem = { id: string; title: string; date?: string | null; location?: string | null; link?: string | null };
 
 const PromotionsSection = () => {
   const [items, setItems] = useState<PromoItem[]>([]);
 
   useEffect(() => {
     (async () => {
-      try {
-        const res = await fetch("/api/admin_get.php");
-        const data = await res.json();
-        setItems(data?.promotions || []);
-      } catch (e) {
-        setItems([]);
-      }
+      const { data } = await supabase
+        .from("promotions")
+        .select("id,title,date,location,link")
+        .order("created_at", { ascending: true });
+      setItems((data || []) as PromoItem[]);
     })();
   }, []);
 

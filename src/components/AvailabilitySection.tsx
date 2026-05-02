@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { ro } from "date-fns/locale";
 import "react-day-picker/dist/style.css";
+import { supabase } from "@/integrations/supabase/client";
 
 type Status = "free" | "occupied" | "unavailable";
 
@@ -29,13 +30,10 @@ const AvailabilitySection = () => {
 
   useEffect(() => {
     (async () => {
-      try {
-        const res = await fetch("/api/admin_get.php");
-        const data = await res.json();
-        setAvailability(data?.availability || {});
-      } catch (e) {
-        setAvailability({});
-      }
+      const { data } = await supabase.from("availability").select("date,status");
+      const map: AvailabilityMap = {};
+      (data || []).forEach((r: any) => { map[r.date] = r.status; });
+      setAvailability(map);
     })();
   }, []);
 
