@@ -153,7 +153,93 @@ const Admin = () => {
     toast({ title: "Șters", description: iso });
   }
 
-  async function addSocialItem() {
+  function handleDayClick(d: Date) {
+    if (bulkMode) {
+      const iso = toISODate(d);
+      setSelectedDates((prev) =>
+        prev.find((x) => toISODate(x) === iso)
+          ? prev.filter((x) => toISODate(x) !== iso)
+          : [...prev, d]
+      );
+    } else {
+      setDayStatus(d, status);
+    }
+  }
+
+  async function applyBulkStatus(st: Status) {
+    if (selectedDates.length === 0) {
+      toast({ title: "Nicio zi selectată", variant: "destructive" });
+      return;
+    }
+    const rows = selectedDates.map((d) => ({
+      date: toISODate(d),
+      status: st,
+      updated_at: new Date().toISOString(),
+    }));
+    const { error } = await supabase.from("availability").upsert(rows, { onConflict: "date" });
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
+    }
+    const next = { ...availability };
+    rows.forEach((r) => { next[r.date] = r.status as Status; });
+    setAvailability(next);
+    setSelectedDates([]);
+    toast({ title: "Salvat", description: `${rows.length} zile → ${st}` });
+  }
+
+  async function clearBulkSelection() {
+    if (selectedDates.length === 0) return;
+    const isos = selectedDates.map(toISODate);
+    const { error } = await supabase.from("availability").delete().in("date", isos);
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
+    }
+    const next = { ...availability };
+    isos.forEach((iso) => { delete next[iso]; });
+    setAvailability(next);
+    setSelectedDates([]);
+    toast({ title: "Resetat", description: `${isos.length} zile la implicit` });
+  }
+
+  async function resetMonth() {
+    const days = getMonthDays(month);
+    const isos = days.map(toISODate).filter((iso) => availability[iso] !== undefined);
+    if (isos.length === 0) {
+      toast({ title: "Nimic de resetat în luna curentă" });
+      return;
+    }
+    const { error } = await supabase.from("availability").delete().in("date", isos);
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
+    }
+    const next = { ...availability };
+    isos.forEach((iso) => { delete next[iso]; });
+    setAvailability(next);
+    toast({ title: "Luna resetată", description: `${isos.length} zile șterse` });
+  }
+
+  async function setRangeStatus(st: Status, days: number) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const rows: { date: string; status: Status; updated_at: string }[] = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      rows.push({ date: toISODate(d), status: st, updated_at: new Date().toISOString() });
+    }
+    const { error } = await supabase.from("availability").upsert(rows, { onConflict: "date" });
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
+    }
+    const next = { ...availability };
+    rows.forEach((r) => { next[r.date] = r.status; });
+    setAvailability(next);
+    toast({ title: "Salvat", description: `Următoarele ${days} zile → ${st}` });
+  }
     const url = postUrl.trim();
     if (!url) return;
     if (platform === "tiktok" && !isValidTikTokUrl(url)) {
