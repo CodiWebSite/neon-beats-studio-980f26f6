@@ -67,12 +67,13 @@ const Admin = () => {
         navigate("/auth");
         return;
       }
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", data.session.user.id)
         .eq("role", "admin")
         .maybeSingle();
+      if (roleError) console.error("Role check error:", roleError);
       setIsAdmin(!!roleData);
       setAuthChecked(true);
     })();
