@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type SocialItem = { id: string; platform: "tiktok" | "instagram"; url: string };
 
@@ -22,13 +23,11 @@ const GallerySection = () => {
 
   useEffect(() => {
     (async () => {
-      try {
-        const res = await fetch("/api/admin_get.php");
-        const data = await res.json();
-        setItems(data?.gallery || []);
-      } catch (e) {
-        setItems([]);
-      }
+      const { data } = await supabase
+        .from("gallery_items")
+        .select("id,platform,url")
+        .order("created_at", { ascending: true });
+      setItems((data || []) as SocialItem[]);
     })();
   }, []);
 

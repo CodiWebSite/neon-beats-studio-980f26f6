@@ -2,38 +2,22 @@ import { useEffect, useMemo, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { ro } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type Status = "free" | "occupied" | "unavailable";
-
 type AvailabilityMap = Record<string, Status>;
-
 type SocialItem = { id: string; platform: "tiktok" | "instagram"; url: string };
-type PromoItem = { id: string; title: string; date?: string; location?: string; link?: string };
+type PromoItem = { id: string; title: string; date?: string | null; location?: string | null; link?: string | null };
 
-function isValidTikTokUrl(url: string): boolean {
-  return /\/video\/\d+/.test(url);
-}
-
-function isValidInstagramUrl(url: string): boolean {
-  return /\/p\//.test(url) || /\/reel\//.test(url);
-}
-
-function extractTikTokVideoId(url: string): string | undefined {
-  const m = url.match(/video\/(\d+)/);
-  return m?.[1];
-}
-
-function toISO(dateStr: string): string {
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toISOString().slice(0, 10);
-}
+const isValidTikTokUrl = (url: string) => /\/video\/\d+/.test(url);
+const isValidInstagramUrl = (url: string) => /\/p\//.test(url) || /\/reel\//.test(url);
+const extractTikTokVideoId = (url: string) => url.match(/video\/(\d+)/)?.[1];
 
 function toISODate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
-
 function getMonthDays(month: Date): Date[] {
   const start = new Date(month.getFullYear(), month.getMonth(), 1);
   const result: Date[] = [];
@@ -46,76 +30,82 @@ function getMonthDays(month: Date): Date[] {
   return result;
 }
 
-function inferTitleFromLink(u: string): string {
-  try {
-    const url = new URL(u);
-    const host = url.hostname.replace("www.", "");
-    const last = url.pathname.split("/").filter(Boolean).pop() || "";
-    const base = (last || host).trim();
-    if (!base) return "Detalii";
-    return base.charAt(0).toUpperCase() + base.slice(1);
-  } catch {
-    return "Detalii";
-  }
-}
-
 const Admin = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const [month, setMonth] = useState<Date>(new Date());
-  const [unlocked, setUnlocked] = useState(false);
-  const [hasPass, setHasPass] = useState(false);
-  const [setupPass, setSetupPass] = useState("");
-  const [inputPass, setInputPass] = useState("");
-  const [adminPass, setAdminPass] = useState("");
-
-  const [date, setDate] = useState("");
-  const [status, setStatus] = useState<Status>("occupied");
   const [availability, setAvailability] = useState<AvailabilityMap>({});
+  const [status, setStatus] = useState<Status>("occupied");
 
+  const [gallery, setGallery] = useState<SocialItem[]>([]);
   const [platform, setPlatform] = useState<"tiktok" | "instagram">("tiktok");
   const [postUrl, setPostUrl] = useState("");
-  const [gallery, setGallery] = useState<SocialItem[]>([]);
+
   const [promotions, setPromotions] = useState<PromoItem[]>([]);
   const [promoTitle, setPromoTitle] = useState("");
   const [promoDate, setPromoDate] = useState("");
   const [promoLocation, setPromoLocation] = useState("");
   const [promoLink, setPromoLink] = useState("");
 
+  const [newPassword, setNewPassword] = useState("");
+
+  // Auth check
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/admin_get.php");
-        const data = await res.json();
-        setAvailability(data?.availability || {});
-        setGallery(data?.gallery || []);
-        setPromotions(data?.promotions || []);
-        setHasPass(Boolean(data?.hasPass));
-      } catch (e) {
-        setAvailability({});
-        setGallery([]);
-        setHasPass(false);
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (!session) {
+        navigate("/auth");
       }
+    });
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        navigate("/auth");
+        return;
+      }
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.session.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      setIsAdmin(!!roleData);
+      setAuthChecked(true);
     })();
-  }, []);
+    return () => sub.subscription.unsubscribe();
+  }, [navigate]);
+
+  // Load data
+  useEffect(() => {
+    if (!isAdmin) return;
+    (async () => {
+      const [a, g, p] = await Promise.all([
+        supabase.from("availability").select("*"),
+        supabase.from("gallery_items").select("*").order("created_at", { ascending: true }),
+        supabase.from("promotions").select("*").order("created_at", { ascending: true }),
+      ]);
+      const map: AvailabilityMap = {};
+      (a.data || []).forEach((r: any) => { map[r.date] = r.status; });
+      setAvailability(map);
+      setGallery((g.data || []).map((r: any) => ({ id: r.id, platform: r.platform, url: r.url })));
+      setPromotions((p.data || []).map((r: any) => ({ id: r.id, title: r.title, date: r.date, location: r.location, link: r.link })));
+    })();
+  }, [isAdmin]);
 
   useEffect(() => {
-    const ensureScript = (src: string) => {
-      const exists = document.querySelector(`script[src="${src}"]`);
-      if (!exists) {
+    const ensure = (src: string) => {
+      if (!document.querySelector(`script[src="${src}"]`)) {
         const s = document.createElement("script");
-        s.async = true;
-        s.src = src;
-        document.body.appendChild(s);
+        s.async = true; s.src = src; document.body.appendChild(s);
       }
     };
-    ensureScript("https://www.instagram.com/embed.js");
-    ensureScript("https://www.tiktok.com/embed.js");
+    ensure("https://www.instagram.com/embed.js");
+    ensure("https://www.tiktok.com/embed.js");
     setTimeout(() => {
-      // @ts-expect-error Instagram embed runtime injected by external script
-      if (window.instgrm && window.instgrm.Embeds && window.instgrm.Embeds.process) {
-        // @ts-expect-error Instagram embed runtime injected by external script
-        window.instgrm.Embeds.process();
-      }
+      // @ts-expect-error
+      if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
     }, 0);
   }, [gallery]);
 
@@ -123,271 +113,142 @@ const Admin = () => {
 
   const { freeDates, occupiedDates, unavailableDates } = useMemo(() => {
     const days = getMonthDays(month);
-    const free: Date[] = [];
-    const occupied: Date[] = [];
-    const unavailable: Date[] = [];
+    const free: Date[] = [], occupied: Date[] = [], unavailable: Date[] = [];
     for (const d of days) {
       const key = toISODate(d);
       const dow = d.getDay();
-      const override = availability[key];
-      const defaultStatus: Status = dow >= 1 && dow <= 4 ? "unavailable" : "free";
-      const finalStatus = override ?? defaultStatus;
-      if (finalStatus === "occupied") occupied.push(d);
-      else if (finalStatus === "unavailable") unavailable.push(d);
+      const def: Status = dow >= 1 && dow <= 4 ? "unavailable" : "free";
+      const final = availability[key] ?? def;
+      if (final === "occupied") occupied.push(d);
+      else if (final === "unavailable") unavailable.push(d);
       else free.push(d);
     }
     return { freeDates: free, occupiedDates: occupied, unavailableDates: unavailable };
   }, [month, availability]);
 
-  async function handleSetupPass() {
-    if (!setupPass) return;
-    try {
-      const res = await fetch("/api/admin_save.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "setup", password: setupPass }),
-      });
-      if (res.ok) {
-        setHasPass(true);
-        setUnlocked(true);
-        setAdminPass(setupPass);
-        setSetupPass("");
-        toast({ title: "Parolă setată", description: "Acces administrator activat." });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Eroare", description: String(err?.error || "Nu am putut seta parola."), variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "Eroare", description: "Conexiune indisponibilă.", variant: "destructive" });
-    }
-  }
-
-  async function handleUnlock() {
-    if (!inputPass) return;
-    try {
-      const res = await fetch("/api/admin_save.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "verify", password: inputPass }),
-      });
-      if (res.ok) {
-        setUnlocked(true);
-        setAdminPass(inputPass);
-        setInputPass("");
-        toast({ title: "Autentificare reușită", description: "Bine ai venit în admin." });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Parolă greșită", description: String(err?.error || "Încearcă din nou."), variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "Eroare", description: "Conexiune indisponibilă.", variant: "destructive" });
-    }
-  }
-
-  async function saveAvailability() {
-    const iso = toISO(date);
-    if (!iso) {
-      toast({ title: "Dată invalidă", description: "Selectează o dată corectă.", variant: "destructive" });
-      return;
-    }
-    const next = { ...availability, [iso]: status };
-    try {
-      const res = await fetch("/api/admin_save.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "saveAvailability", password: adminPass, availability: next }),
-      });
-      if (res.ok) {
-        setAvailability(next);
-        toast({ title: "Salvat", description: `${iso} → ${status}` });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Eroare salvare", description: String(err?.error || "Verifică parola și încearcă din nou."), variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "Eroare", description: "Conexiune indisponibilă.", variant: "destructive" });
-    }
-  }
-
   async function setDayStatus(d: Date, st: Status) {
     const iso = toISODate(d);
-    const next = { ...availability, [iso]: st };
-    try {
-      const res = await fetch("/api/admin_save.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "saveAvailability", password: adminPass, availability: next }),
-      });
-      if (res.ok) {
-        setAvailability(next);
-        toast({ title: "Salvat", description: `${iso} → ${st}` });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Eroare salvare", description: String(err?.error || "Verifică parola."), variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "Eroare", description: "Conexiune indisponibilă.", variant: "destructive" });
+    const { error } = await supabase
+      .from("availability")
+      .upsert({ date: iso, status: st, updated_at: new Date().toISOString() }, { onConflict: "date" });
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
     }
+    setAvailability({ ...availability, [iso]: st });
+    toast({ title: "Salvat", description: `${iso} → ${st}` });
   }
 
   async function removeEntry(iso: string) {
+    const { error } = await supabase.from("availability").delete().eq("date", iso);
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
+    }
     const next = { ...availability };
     delete next[iso];
-    try {
-      const res = await fetch("/api/admin_save.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "saveAvailability", password: adminPass, availability: next }),
-      });
-      if (res.ok) {
-        setAvailability(next);
-        toast({ title: "Șters", description: iso });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Eroare salvare", description: String(err?.error || "Verifică parola."), variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "Eroare", description: "Conexiune indisponibilă.", variant: "destructive" });
-    }
+    setAvailability(next);
+    toast({ title: "Șters", description: iso });
   }
 
   async function addSocialItem() {
-    if (!postUrl.trim()) {
-      toast({ title: "Link invalid", description: "Adaugă URL complet al postării.", variant: "destructive" });
+    const url = postUrl.trim();
+    if (!url) return;
+    if (platform === "tiktok" && !isValidTikTokUrl(url)) {
+      toast({ title: "TikTok nevalid", description: "Folosește linkul cu /video/ID.", variant: "destructive" });
       return;
     }
-    if (platform === "tiktok" && !isValidTikTokUrl(postUrl.trim())) {
-      toast({ title: "TikTok nevalid", description: "Folosește linkul complet cu /video/ID.", variant: "destructive" });
+    if (platform === "instagram" && !isValidInstagramUrl(url)) {
+      toast({ title: "Instagram nevalid", description: "Folosește link /p/ sau /reel/.", variant: "destructive" });
       return;
     }
-    if (platform === "instagram" && !isValidInstagramUrl(postUrl.trim())) {
-      toast({ title: "Instagram nevalid", description: "Folosește link de postare /p/ sau /reel/.", variant: "destructive" });
+    const { data, error } = await supabase
+      .from("gallery_items")
+      .insert({ platform, url })
+      .select()
+      .single();
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
       return;
     }
-    const id = `${platform}-${Date.now()}`;
-    const next = [...gallery, { id, platform, url: postUrl.trim() }];
-    try {
-      const res = await fetch("/api/admin_save.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "saveGallery", password: adminPass, gallery: next }),
-      });
-      if (res.ok) {
-        setGallery(next);
-        setPostUrl("");
-        toast({ title: "Adăugat", description: `${platform} → element în galerie` });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Eroare salvare", description: String(err?.error || "Verifică parola."), variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "Eroare", description: "Conexiune indisponibilă.", variant: "destructive" });
-    }
+    setGallery([...gallery, { id: data.id, platform: data.platform as any, url: data.url }]);
+    setPostUrl("");
+    toast({ title: "Adăugat" });
   }
 
   async function removeSocialItem(id: string) {
-    const next = gallery.filter((it) => it.id !== id);
-    try {
-      const res = await fetch("/api/admin_save.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "saveGallery", password: adminPass, gallery: next }),
-      });
-      if (res.ok) {
-        setGallery(next);
-        toast({ title: "Șters", description: id });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Eroare salvare", description: String(err?.error || "Verifică parola."), variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "Eroare", description: "Conexiune indisponibilă.", variant: "destructive" });
+    const { error } = await supabase.from("gallery_items").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
     }
+    setGallery(gallery.filter((g) => g.id !== id));
   }
 
   async function addPromotion() {
     const t = promoTitle.trim();
-    const l = promoLink.trim();
-    if (!t && !l) {
-      toast({ title: "Titlu sau link lipsă", description: "Completează cel puțin titlul sau linkul.", variant: "destructive" });
+    if (!t) {
+      toast({ title: "Titlu lipsă", variant: "destructive" });
       return;
     }
-    const id = `promo-${Date.now()}`;
-    const title = t || inferTitleFromLink(l);
-    const link = l || undefined;
-    const next = [...promotions, { id, title, date: promoDate || undefined, location: promoLocation || undefined, link }];
-    try {
-      const res = await fetch("/api/admin_save.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "savePromotions", password: adminPass, promotions: next }),
-      });
-      if (res.ok) {
-        setPromotions(next);
-        setPromoTitle("");
-        setPromoDate("");
-        setPromoLocation("");
-        setPromoLink("");
-        toast({ title: "Promo adăugat", description: promoTitle });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Eroare salvare", description: String(err?.error || "Verifică parola."), variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "Eroare", description: "Conexiune indisponibilă.", variant: "destructive" });
+    const { data, error } = await supabase
+      .from("promotions")
+      .insert({
+        title: t,
+        date: promoDate || null,
+        location: promoLocation.trim() || null,
+        link: promoLink.trim() || null,
+      })
+      .select()
+      .single();
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
     }
+    setPromotions([...promotions, data as any]);
+    setPromoTitle(""); setPromoDate(""); setPromoLocation(""); setPromoLink("");
+    toast({ title: "Promo adăugat" });
   }
 
   async function removePromotion(id: string) {
-    const next = promotions.filter((p) => p.id !== id);
-    try {
-      const res = await fetch("/api/admin_save.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "savePromotions", password: adminPass, promotions: next }),
-      });
-      if (res.ok) {
-        setPromotions(next);
-        toast({ title: "Șters", description: id });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast({ title: "Eroare salvare", description: String(err?.error || "Verifică parola."), variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "Eroare", description: "Conexiune indisponibilă.", variant: "destructive" });
+    const { error } = await supabase.from("promotions").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
     }
+    setPromotions(promotions.filter((p) => p.id !== id));
   }
 
-  if (!unlocked) {
+  async function changePassword() {
+    if (!newPassword || newPassword.length < 6) {
+      toast({ title: "Parolă prea scurtă", description: "Minim 6 caractere.", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
+    }
+    setNewPassword("");
+    toast({ title: "Parolă schimbată" });
+  }
+
+  async function logout() {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  }
+
+  if (!authChecked) {
+    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground">Se încarcă...</div>;
+  }
+
+  if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="glass-card p-8 w-full max-w-md">
-          <h1 className="font-display text-2xl mb-4">Administrator</h1>
-          {!hasPass ? (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">Setează o parolă pentru accesul admin.</p>
-              <input
-                type="password"
-                className="w-full h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground"
-                placeholder="Parolă nouă"
-                value={setupPass}
-                onChange={(e) => setSetupPass(e.target.value)}
-              />
-              <button onClick={handleSetupPass} className="w-full h-11 rounded-lg border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10">Salvează parola</button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">Introdu parola pentru acces.</p>
-              <input
-                type="password"
-                className="w-full h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground"
-                placeholder="Parolă"
-                value={inputPass}
-                onChange={(e) => setInputPass(e.target.value)}
-              />
-              <button onClick={handleUnlock} className="w-full h-11 rounded-lg border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10">Autentifică</button>
-            </div>
-          )}
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="luxury-card p-8 max-w-md text-center">
+          <h1 className="font-display text-2xl gold-text mb-3">Acces interzis</h1>
+          <p className="text-muted-foreground mb-4">Contul tău nu are rol de administrator.</p>
+          <button onClick={logout} className="px-6 py-2 rounded-lg border border-gold/30 text-gold">Logout</button>
         </div>
       </div>
     );
@@ -396,24 +257,42 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-10">
-        <h1 className="font-display text-3xl mb-6">Setări Disponibilitate</h1>
-        <div className="glass-card p-6 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="font-display text-3xl gold-text">Panou Administrator</h1>
+          <button onClick={logout} className="px-4 py-2 rounded-lg border border-gold/30 text-gold hover:bg-gold/10">Logout</button>
+        </div>
+
+        {/* Schimbare parolă */}
+        <div className="luxury-card p-6 mb-8">
+          <h2 className="font-display text-xl mb-4 gold-text">Schimbă parola</h2>
+          <div className="flex gap-3">
+            <input
+              type="password"
+              placeholder="Parolă nouă (min 6)"
+              className="flex-1 h-11 px-3 rounded-lg bg-muted/50 border border-gold/20 text-foreground"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <button onClick={changePassword} className="h-11 px-6 rounded-lg bg-gradient-to-r from-gold to-champagne text-background font-medium">Salvează</button>
+          </div>
+        </div>
+
+        {/* Disponibilitate */}
+        <h2 className="font-display text-2xl gold-text mb-4">Disponibilitate</h2>
+        <div className="luxury-card p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
-            <button
-              className="px-4 py-2 rounded-full border border-white/10 hover:border-neon-cyan/40 hover:bg-muted"
-              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-            >
-              ← Luna anterioară
-            </button>
-            <div className="font-display text-lg">
-              {month.toLocaleString("ro-RO", { month: "long", year: "numeric" })}
-            </div>
-            <button
-              className="px-4 py-2 rounded-full border border-white/10 hover:border-neon-cyan/40 hover:bg-muted"
-              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-            >
-              Luna următoare →
-            </button>
+            <button className="px-4 py-2 rounded-full border border-gold/20 hover:border-gold/40" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>← Anterior</button>
+            <div className="font-display text-lg">{month.toLocaleString("ro-RO", { month: "long", year: "numeric" })}</div>
+            <button className="px-4 py-2 rounded-full border border-gold/20 hover:border-gold/40" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>Următor →</button>
+          </div>
+
+          <div className="mb-3 flex gap-2 flex-wrap">
+            <span className="text-sm text-muted-foreground self-center">Click pe zi → setează:</span>
+            {(["free","occupied","unavailable"] as Status[]).map((s) => (
+              <button key={s} onClick={() => setStatus(s)} className={`px-3 py-1 rounded-full text-sm border ${status===s ? "border-gold bg-gold/20 text-gold" : "border-gold/20 text-muted-foreground"}`}>
+                {s === "free" ? "🟢 liber" : s === "occupied" ? "🔴 ocupat" : "⚪ indisponibil"}
+              </button>
+            ))}
           </div>
 
           <DayPicker
@@ -429,86 +308,51 @@ const Admin = () => {
             onDayClick={(d) => setDayStatus(d, status)}
             className="rdp text-sm"
           />
-
-          <p className="mt-4 text-sm text-muted-foreground text-center">🟢 liber (V–S–D) • 🔴 ocupat • ⚪ indisponibil (L–J)</p>
-        </div>
-        <div className="glass-card p-6 mb-8">
-          <div className="grid sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm text-muted-foreground mb-2">Data</label>
-              <input type="date" className="w-full h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground" value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm text-muted-foreground mb-2">Status</label>
-              <select className="w-full h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground" value={status} onChange={(e) => setStatus(e.target.value as Status)}>
-                <option value="free">liber</option>
-                <option value="occupied">ocupat</option>
-                <option value="unavailable">indisponibil</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <button onClick={saveAvailability} className="w-full h-11 rounded-lg bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-magenta text-background">Salvează</button>
-            </div>
-          </div>
         </div>
 
-        <div className="glass-card p-6">
-          <h2 className="font-display text-xl mb-4">Zile setate</h2>
+        <div className="luxury-card p-6 mb-10">
+          <h3 className="font-display text-lg gold-text mb-3">Zile setate manual</h3>
           {entries.length === 0 ? (
             <p className="text-muted-foreground">Nu există zile setate.</p>
           ) : (
             <div className="grid md:grid-cols-2 gap-3">
               {entries.map(([iso, st]) => (
-                <div key={iso} className="flex items-center justify-between rounded-lg bg-muted/50 border border-white/10 px-4 py-2">
+                <div key={iso} className="flex items-center justify-between rounded-lg bg-muted/30 border border-gold/10 px-4 py-2">
                   <div className="font-mono text-sm">{iso}</div>
                   <div className="text-sm capitalize">{st}</div>
-                  <button onClick={() => removeEntry(iso)} className="text-neon-magenta hover:underline">Șterge</button>
+                  <button onClick={() => removeEntry(iso)} className="text-bronze hover:text-gold text-sm">Șterge</button>
                 </div>
               ))}
             </div>
           )}
-          <p className="mt-4 text-sm text-muted-foreground">Implicit: L–J indisponibil, V–S–D liber. Zilele setate în admin suprascriu implicitul.</p>
         </div>
 
-        <h1 className="font-display text-3xl mt-10 mb-6">Promo Evenimente</h1>
-        <div className="glass-card p-6 mb-8">
+        {/* Promoții */}
+        <h2 className="font-display text-2xl gold-text mb-4">Promo Evenimente</h2>
+        <div className="luxury-card p-6 mb-4">
           <div className="grid md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm text-muted-foreground mb-2">Titlu</label>
-              <input className="w-full h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground" value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm text-muted-foreground mb-2">Data</label>
-              <input type="date" className="w-full h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground" value={promoDate} onChange={(e) => setPromoDate(e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm text-muted-foreground mb-2">Locație</label>
-              <input className="w-full h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground" value={promoLocation} onChange={(e) => setPromoLocation(e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm text-muted-foreground mb-2">Link</label>
-              <input className="w-full h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground" placeholder="https://..." value={promoLink} onChange={(e) => setPromoLink(e.target.value)} />
-            </div>
+            <input className="h-11 px-3 rounded-lg bg-muted/50 border border-gold/20" placeholder="Titlu" value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} />
+            <input type="date" className="h-11 px-3 rounded-lg bg-muted/50 border border-gold/20" value={promoDate} onChange={(e) => setPromoDate(e.target.value)} />
+            <input className="h-11 px-3 rounded-lg bg-muted/50 border border-gold/20" placeholder="Locație" value={promoLocation} onChange={(e) => setPromoLocation(e.target.value)} />
+            <input className="h-11 px-3 rounded-lg bg-muted/50 border border-gold/20" placeholder="Link" value={promoLink} onChange={(e) => setPromoLink(e.target.value)} />
           </div>
           <div className="flex justify-end mt-4">
-            <button onClick={addPromotion} className="h-11 px-6 rounded-lg bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-magenta text-background">Adaugă</button>
+            <button onClick={addPromotion} className="h-11 px-6 rounded-lg bg-gradient-to-r from-gold to-champagne text-background font-medium">Adaugă</button>
           </div>
         </div>
 
-        <div className="glass-card p-6">
+        <div className="luxury-card p-6 mb-10">
           {promotions.length === 0 ? (
             <p className="text-muted-foreground">Nu există promoții.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {promotions.map((p) => (
-                <div key={p.id} className="glass-card p-4">
-                  <div className="font-display text-lg text-foreground">{p.title}</div>
+                <div key={p.id} className="rounded-lg bg-muted/30 border border-gold/10 p-4">
+                  <div className="font-display text-lg">{p.title}</div>
                   <div className="text-sm text-muted-foreground mt-1">{[p.date, p.location].filter(Boolean).join(" • ")}</div>
-                  {p.link && (
-                    <a href={p.link} target="_blank" rel="noopener noreferrer" className="text-neon-cyan mt-2 inline-block">Detalii</a>
-                  )}
+                  {p.link && <a href={p.link} target="_blank" rel="noreferrer" className="text-gold mt-2 inline-block">Detalii</a>}
                   <div className="flex justify-end mt-3">
-                    <button onClick={() => removePromotion(p.id)} className="px-3 py-1 rounded-md border border-white/10 text-muted-foreground hover:text-neon-magenta">Șterge</button>
+                    <button onClick={() => removePromotion(p.id)} className="text-bronze hover:text-gold text-sm">Șterge</button>
                   </div>
                 </div>
               ))}
@@ -516,40 +360,30 @@ const Admin = () => {
           )}
         </div>
 
-        <h1 className="font-display text-3xl mt-10 mb-6">Galerie Socială</h1>
-        <div className="glass-card p-6 mb-8">
+        {/* Galerie */}
+        <h2 className="font-display text-2xl gold-text mb-4">Galerie Socială</h2>
+        <div className="luxury-card p-6 mb-4">
           <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm text-muted-foreground mb-2">Platformă</label>
-              <select className="w-full h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground" value={platform} onChange={(e) => setPlatform(e.target.value as "tiktok" | "instagram")}>
-                <option value="tiktok">TikTok</option>
-                <option value="instagram">Instagram</option>
-              </select>
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm text-muted-foreground mb-2">URL postare</label>
-              <div className="flex gap-3">
-                <input className="flex-1 h-11 px-3 rounded-lg bg-muted/50 border border-white/10 text-foreground" placeholder="https://www.tiktok.com/... sau https://www.instagram.com/p/..." value={postUrl} onChange={(e) => setPostUrl(e.target.value)} />
-                <button onClick={addSocialItem} className="h-11 px-6 rounded-lg bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-magenta text-background">Adaugă</button>
-              </div>
+            <select className="h-11 px-3 rounded-lg bg-muted/50 border border-gold/20" value={platform} onChange={(e) => setPlatform(e.target.value as any)}>
+              <option value="tiktok">TikTok</option>
+              <option value="instagram">Instagram</option>
+            </select>
+            <div className="md:col-span-2 flex gap-3">
+              <input className="flex-1 h-11 px-3 rounded-lg bg-muted/50 border border-gold/20" placeholder="URL postare" value={postUrl} onChange={(e) => setPostUrl(e.target.value)} />
+              <button onClick={addSocialItem} className="h-11 px-6 rounded-lg bg-gradient-to-r from-gold to-champagne text-background font-medium">Adaugă</button>
             </div>
           </div>
         </div>
 
-        <div className="glass-card p-6">
+        <div className="luxury-card p-6">
           {gallery.length === 0 ? (
-            <p className="text-muted-foreground">Nu există elemente în galerie.</p>
+            <p className="text-muted-foreground">Galerie goală.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {gallery.map((item) => (
-                <div key={item.id} className="glass-card p-3">
+                <div key={item.id} className="rounded-lg bg-muted/30 border border-gold/10 p-3">
                   {item.platform === "tiktok" && (
-                    <blockquote
-                      className="tiktok-embed"
-                      cite={item.url}
-                      data-video-id={extractTikTokVideoId(item.url) || undefined}
-                      style={{ maxWidth: 605, minWidth: 325 }}
-                    >
+                    <blockquote className="tiktok-embed" cite={item.url} data-video-id={extractTikTokVideoId(item.url) || undefined} style={{ maxWidth: 605, minWidth: 325 }}>
                       <section />
                     </blockquote>
                   )}
@@ -557,7 +391,7 @@ const Admin = () => {
                     <blockquote className="instagram-media" data-instgrm-permalink={item.url} data-instgrm-version="14" />
                   )}
                   <div className="flex justify-end mt-3">
-                    <button onClick={() => removeSocialItem(item.id)} className="px-3 py-1 rounded-md border border-white/10 text-muted-foreground hover:text-neon-magenta">Șterge</button>
+                    <button onClick={() => removeSocialItem(item.id)} className="text-bronze hover:text-gold text-sm">Șterge</button>
                   </div>
                 </div>
               ))}
