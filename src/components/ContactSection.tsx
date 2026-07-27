@@ -234,21 +234,33 @@ const ContactSection = () => {
               <div className="flex gap-4">
                 <a
                   href="https://www.instagram.com/instadjfunky/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram DJ Funky Events"
                   className="w-12 h-12 rounded-xl bg-muted/50 border border-white/10 flex items-center justify-center hover:bg-neon-cyan/10 hover:border-neon-cyan/30 transition-all duration-300 group"
                 >
                   <Instagram className="w-5 h-5 text-muted-foreground group-hover:text-neon-cyan transition-colors" />
+                  <span className="sr-only">Instagram</span>
                 </a>
                 <a
                   href="https://www.facebook.com/condreacodrin"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook DJ Funky Events"
                   className="w-12 h-12 rounded-xl bg-muted/50 border border-white/10 flex items-center justify-center hover:bg-neon-magenta/10 hover:border-neon-magenta/30 transition-all duration-300 group"
                 >
                   <Facebook className="w-5 h-5 text-muted-foreground group-hover:text-neon-magenta transition-colors" />
+                  <span className="sr-only">Facebook</span>
                 </a>
                 <a
-                  href="http://tiktok.com/@djfunkyevents"
+                  href="https://tiktok.com/@djfunkyevents"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="TikTok DJ Funky Events"
                   className="w-12 h-12 rounded-xl bg-muted/50 border border-white/10 flex items-center justify-center hover:bg-neon-purple/10 hover:border-neon-purple/30 transition-all duration-300 group"
                 >
                   <TikTokIcon className="w-5 h-5 text-muted-foreground group-hover:text-neon-purple transition-colors" />
+                  <span className="sr-only">TikTok</span>
                 </a>
               </div>
             </div>

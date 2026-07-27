@@ -112,6 +112,8 @@ const Navbar = () => {
             </Button>
             <button
               className="text-foreground p-2"
+              aria-label={isMobileMenuOpen ? "Închide meniul" : "Deschide meniul"}
+              aria-expanded={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? (
