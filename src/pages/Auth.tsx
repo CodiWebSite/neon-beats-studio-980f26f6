@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SEO } from "@/components/SEO";
 
 const AuthPage = () => {
   const { toast } = useToast();
@@ -53,6 +54,7 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <SEO title="Autentificare Admin | DJ Funky Events" description="Autentificare în panoul de administrare DJ Funky Events." path="/auth" noindex />
       <div className="luxury-card p-8 w-full max-w-md">
         <h1 className="font-display text-3xl mb-2 gold-text">Administrator</h1>
         <p className="text-sm text-muted-foreground mb-6">
