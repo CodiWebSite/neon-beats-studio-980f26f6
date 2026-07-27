@@ -5,6 +5,7 @@ import { ro } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SEO } from "@/components/SEO";
 
 type Status = "free" | "occupied" | "unavailable";
 type AvailabilityMap = Record<string, Status>;
@@ -347,6 +348,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Panou Administrator | DJ Funky Events" description="Panou de administrare pentru gestionarea disponibilității, galeriei și promoțiilor." path="/admin" noindex />
       <div className="container mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-display text-3xl gold-text">Panou Administrator</h1>

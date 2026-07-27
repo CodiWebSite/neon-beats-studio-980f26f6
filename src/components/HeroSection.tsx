@@ -50,10 +50,11 @@ const HeroSection = () => {
 
           {/* Main Heading */}
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            <span className="text-foreground">DJ</span>{" "}
-            <span className="gradient-text">FUNKY</span>
+            <span className="sr-only">DJ Funky Events — DJ pentru Evenimente Premium în Iași</span>
+            <span aria-hidden="true" className="text-foreground">DJ</span>{" "}
+            <span aria-hidden="true" className="gradient-text">FUNKY</span>
             <br />
-            <span className="text-foreground text-3xl md:text-5xl lg:text-6xl">EVENTS</span>
+            <span aria-hidden="true" className="text-foreground text-3xl md:text-5xl lg:text-6xl">EVENTS</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
