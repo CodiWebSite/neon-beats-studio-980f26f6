@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_requests: {
+        Row: {
+          created_at: string
+          email: string
+          event_date: string | null
+          event_type: string | null
+          id: string
+          message: string | null
+          name: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_date?: string | null
+          event_type?: string | null
+          id?: string
+          message?: string | null
+          name: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_date?: string | null
+          event_type?: string | null
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gallery_items: {
         Row: {
           created_at: string
