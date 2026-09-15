@@ -322,7 +322,17 @@ const Admin = () => {
     toast({ title: "Promo adăugat" });
   }
 
+  async function removeRequest(id: string) {
+    const { error } = await supabase.from("contact_requests").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
+    }
+    setRequests(requests.filter((r) => r.id !== id));
+  }
+
   async function removePromotion(id: string) {
+
     const { error } = await supabase.from("promotions").delete().eq("id", id);
     if (error) {
       toast({ title: "Eroare", description: error.message, variant: "destructive" });
@@ -478,7 +488,38 @@ const Admin = () => {
         </div>
 
         {/* Promoții */}
+        {/* Cereri de ofertă */}
+        <h2 className="font-display text-2xl gold-text mb-4">Cereri de ofertă</h2>
+        <div className="luxury-card p-6 mb-10">
+          {requests.length === 0 ? (
+            <p className="text-muted-foreground">Nu există cereri noi.</p>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {requests.map((r) => (
+                <div key={r.id} className="rounded-lg bg-muted/30 border border-gold/10 p-4">
+                  <div className="font-display text-lg">{r.name}</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {[r.event_type, r.event_date].filter(Boolean).join(" • ")}
+                  </div>
+                  <div className="text-sm mt-2 space-x-3">
+                    <a href={`mailto:${r.email}`} className="text-gold hover:underline">{r.email}</a>
+                    <a href={`tel:${r.phone}`} className="text-gold hover:underline">{r.phone}</a>
+                  </div>
+                  {r.message && <p className="text-sm text-muted-foreground mt-2 whitespace-pre-line">{r.message}</p>}
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(r.created_at).toLocaleString("ro-RO")}
+                    </span>
+                    <button onClick={() => removeRequest(r.id)} className="text-bronze hover:text-gold text-sm">Șterge</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <h2 className="font-display text-2xl gold-text mb-4">Promo Evenimente</h2>
+
         <div className="luxury-card p-6 mb-4">
           <div className="grid md:grid-cols-4 gap-4">
             <input className="h-11 px-3 rounded-lg bg-muted/50 border border-gold/20" placeholder="Titlu" value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} />
