@@ -17,8 +17,12 @@ const isValidInstagramUrl = (url: string) => /\/p\//.test(url) || /\/reel\//.tes
 const extractTikTokVideoId = (url: string) => url.match(/video\/(\d+)/)?.[1];
 
 function toISODate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
+
 function getMonthDays(month: Date): Date[] {
   const start = new Date(month.getFullYear(), month.getMonth(), 1);
   const result: Date[] = [];
