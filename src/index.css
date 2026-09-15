@@ -42,6 +42,12 @@
     --neon-pink: 340 90% 60%;
     --neon-blue: 210 100% 60%;
 
+    /* Luxury accents */
+    --gold: 43 74% 55%;
+    --champagne: 40 60% 78%;
+    --bronze: 28 45% 52%;
+
+
     --gradient-neon: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--accent)));
     --gradient-hero: linear-gradient(180deg, hsl(225 15% 4%) 0%, hsl(225 15% 10%) 50%, hsl(260 20% 12%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(225 15% 12% / 0.8), hsl(225 15% 6% / 0.9));
@@ -80,10 +86,22 @@
     background: var(--glass-bg);
     box-shadow: var(--shadow-glass);
   }
+  .luxury-card {
+    @apply backdrop-blur-xl rounded-2xl border;
+    border-color: hsl(var(--gold) / 0.2);
+    background: var(--glass-bg);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .gold-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--champagne)), hsl(var(--bronze)));
+  }
 
   .neon-text {
     text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
   }
+
 
   .neon-border {
     box-shadow: 0 0 10px hsl(var(--neon-cyan) / 0.5),

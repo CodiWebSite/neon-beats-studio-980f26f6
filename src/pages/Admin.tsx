@@ -10,15 +10,30 @@ import { SEO } from "@/components/SEO";
 type Status = "free" | "occupied" | "unavailable";
 type AvailabilityMap = Record<string, Status>;
 type SocialItem = { id: string; platform: "tiktok" | "instagram"; url: string };
+type ContactRequest = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  event_type?: string | null;
+  event_date?: string | null;
+  message?: string | null;
+  created_at: string;
+};
 type PromoItem = { id: string; title: string; date?: string | null; location?: string | null; link?: string | null };
+
 
 const isValidTikTokUrl = (url: string) => /\/video\/\d+/.test(url);
 const isValidInstagramUrl = (url: string) => /\/p\//.test(url) || /\/reel\//.test(url);
 const extractTikTokVideoId = (url: string) => url.match(/video\/(\d+)/)?.[1];
 
 function toISODate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
+
 function getMonthDays(month: Date): Date[] {
   const start = new Date(month.getFullYear(), month.getMonth(), 1);
   const result: Date[] = [];
@@ -53,7 +68,9 @@ const Admin = () => {
   const [promoLocation, setPromoLocation] = useState("");
   const [promoLink, setPromoLink] = useState("");
 
+  const [requests, setRequests] = useState<ContactRequest[]>([]);
   const [newPassword, setNewPassword] = useState("");
+
 
   // Auth check
   useEffect(() => {
@@ -85,16 +102,19 @@ const Admin = () => {
   useEffect(() => {
     if (!isAdmin) return;
     (async () => {
-      const [a, g, p] = await Promise.all([
+      const [a, g, p, c] = await Promise.all([
         supabase.from("availability").select("*"),
         supabase.from("gallery_items").select("*").order("created_at", { ascending: true }),
         supabase.from("promotions").select("*").order("created_at", { ascending: true }),
+        supabase.from("contact_requests").select("*").order("created_at", { ascending: false }),
       ]);
       const map: AvailabilityMap = {};
       (a.data || []).forEach((r: any) => { map[r.date] = r.status; });
       setAvailability(map);
       setGallery((g.data || []).map((r: any) => ({ id: r.id, platform: r.platform, url: r.url })));
       setPromotions((p.data || []).map((r: any) => ({ id: r.id, title: r.title, date: r.date, location: r.location, link: r.link })));
+      setRequests((c.data || []) as ContactRequest[]);
+
     })();
   }, [isAdmin]);
 
@@ -302,7 +322,17 @@ const Admin = () => {
     toast({ title: "Promo adăugat" });
   }
 
+  async function removeRequest(id: string) {
+    const { error } = await supabase.from("contact_requests").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Eroare", description: error.message, variant: "destructive" });
+      return;
+    }
+    setRequests(requests.filter((r) => r.id !== id));
+  }
+
   async function removePromotion(id: string) {
+
     const { error } = await supabase.from("promotions").delete().eq("id", id);
     if (error) {
       toast({ title: "Eroare", description: error.message, variant: "destructive" });
@@ -458,7 +488,38 @@ const Admin = () => {
         </div>
 
         {/* Promoții */}
+        {/* Cereri de ofertă */}
+        <h2 className="font-display text-2xl gold-text mb-4">Cereri de ofertă</h2>
+        <div className="luxury-card p-6 mb-10">
+          {requests.length === 0 ? (
+            <p className="text-muted-foreground">Nu există cereri noi.</p>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {requests.map((r) => (
+                <div key={r.id} className="rounded-lg bg-muted/30 border border-gold/10 p-4">
+                  <div className="font-display text-lg">{r.name}</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {[r.event_type, r.event_date].filter(Boolean).join(" • ")}
+                  </div>
+                  <div className="text-sm mt-2 space-x-3">
+                    <a href={`mailto:${r.email}`} className="text-gold hover:underline">{r.email}</a>
+                    <a href={`tel:${r.phone}`} className="text-gold hover:underline">{r.phone}</a>
+                  </div>
+                  {r.message && <p className="text-sm text-muted-foreground mt-2 whitespace-pre-line">{r.message}</p>}
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(r.created_at).toLocaleString("ro-RO")}
+                    </span>
+                    <button onClick={() => removeRequest(r.id)} className="text-bronze hover:text-gold text-sm">Șterge</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <h2 className="font-display text-2xl gold-text mb-4">Promo Evenimente</h2>
+
         <div className="luxury-card p-6 mb-4">
           <div className="grid md:grid-cols-4 gap-4">
             <input className="h-11 px-3 rounded-lg bg-muted/50 border border-gold/20" placeholder="Titlu" value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} />

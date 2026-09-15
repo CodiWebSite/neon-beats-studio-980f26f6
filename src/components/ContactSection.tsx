@@ -11,6 +11,8 @@ function TikTokIcon(props: { className?: string }) {
   );
 }
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const ContactSection = () => {
   const { toast } = useToast();
@@ -23,25 +25,30 @@ const ContactSection = () => {
     message: "",
   });
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const { error } = await supabase.from("contact_requests").insert({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        event_type: formData.eventType || null,
+        event_date: formData.date || null,
+        message: formData.message || null,
       });
-      if (res.ok) {
-        toast({ title: "Mesaj trimis cu succes! 🎉", description: "Te vom contacta în cel mai scurt timp posibil." });
-        setFormData({ name: "", email: "", phone: "", eventType: "", date: "", message: "" });
-      } else {
-        const data = await res.json().catch(() => ({}));
-        toast({ title: "Eroare la trimitere", description: data?.error || "Încearcă din nou sau contactează-ne direct.", variant: "destructive" });
-      }
-    } catch (err) {
-      toast({ title: "Eroare de rețea", description: "Nu am putut trimite cererea.", variant: "destructive" });
+      if (error) throw error;
+      toast({ title: "Mesaj trimis cu succes! 🎉", description: "Te vom contacta în cel mai scurt timp posibil." });
+      setFormData({ name: "", email: "", phone: "", eventType: "", date: "", message: "" });
+    } catch (err: any) {
+      toast({ title: "Eroare la trimitere", description: err?.message || "Încearcă din nou sau contactează-ne direct.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
     }
   };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
