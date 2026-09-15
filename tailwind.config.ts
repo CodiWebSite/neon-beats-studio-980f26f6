@@ -58,6 +58,10 @@ export default {
           pink: "hsl(var(--neon-pink))",
           blue: "hsl(var(--neon-blue))",
         },
+        gold: "hsl(var(--gold))",
+        champagne: "hsl(var(--champagne))",
+        bronze: "hsl(var(--bronze))",
+
       },
       borderRadius: {
         lg: "var(--radius)",
