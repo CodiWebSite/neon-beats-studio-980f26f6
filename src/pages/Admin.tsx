@@ -20,6 +20,7 @@ type ContactRequest = {
   message?: string | null;
   created_at: string;
 };
+type PromoItem = { id: string; title: string; date?: string | null; location?: string | null; link?: string | null };
 
 
 const isValidTikTokUrl = (url: string) => /\/video\/\d+/.test(url);
