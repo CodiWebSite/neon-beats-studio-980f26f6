@@ -10,7 +10,17 @@ import { SEO } from "@/components/SEO";
 type Status = "free" | "occupied" | "unavailable";
 type AvailabilityMap = Record<string, Status>;
 type SocialItem = { id: string; platform: "tiktok" | "instagram"; url: string };
-type PromoItem = { id: string; title: string; date?: string | null; location?: string | null; link?: string | null };
+type ContactRequest = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  event_type?: string | null;
+  event_date?: string | null;
+  message?: string | null;
+  created_at: string;
+};
+
 
 const isValidTikTokUrl = (url: string) => /\/video\/\d+/.test(url);
 const isValidInstagramUrl = (url: string) => /\/p\//.test(url) || /\/reel\//.test(url);
@@ -57,7 +67,9 @@ const Admin = () => {
   const [promoLocation, setPromoLocation] = useState("");
   const [promoLink, setPromoLink] = useState("");
 
+  const [requests, setRequests] = useState<ContactRequest[]>([]);
   const [newPassword, setNewPassword] = useState("");
+
 
   // Auth check
   useEffect(() => {
