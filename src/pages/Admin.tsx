@@ -102,16 +102,19 @@ const Admin = () => {
   useEffect(() => {
     if (!isAdmin) return;
     (async () => {
-      const [a, g, p] = await Promise.all([
+      const [a, g, p, c] = await Promise.all([
         supabase.from("availability").select("*"),
         supabase.from("gallery_items").select("*").order("created_at", { ascending: true }),
         supabase.from("promotions").select("*").order("created_at", { ascending: true }),
+        supabase.from("contact_requests").select("*").order("created_at", { ascending: false }),
       ]);
       const map: AvailabilityMap = {};
       (a.data || []).forEach((r: any) => { map[r.date] = r.status; });
       setAvailability(map);
       setGallery((g.data || []).map((r: any) => ({ id: r.id, platform: r.platform, url: r.url })));
       setPromotions((p.data || []).map((r: any) => ({ id: r.id, title: r.title, date: r.date, location: r.location, link: r.link })));
+      setRequests((c.data || []) as ContactRequest[]);
+
     })();
   }, [isAdmin]);
 
