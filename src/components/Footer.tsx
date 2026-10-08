@@ -114,8 +114,8 @@ const Footer = () => {
             <div className="space-y-3 text-muted-foreground">
               <p>Iași, România</p>
               <p>
-                <a href="tel:+40755649856" className="hover:text-neon-cyan transition-colors">
-                  +40 755 649 856
+                <a href="tel:+40769291604" className="hover:text-neon-cyan transition-colors">
+                  +40 769 291 604
                 </a>
               </p>
               <p>
