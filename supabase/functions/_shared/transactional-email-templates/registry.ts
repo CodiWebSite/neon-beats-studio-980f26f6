@@ -17,7 +17,10 @@ export interface TemplateEntry {
  *   import { template as welcomeTemplate } from './welcome.tsx'
  *   // then add to TEMPLATES: 'welcome': welcomeTemplate
  */
+import { template as bookingRequest } from './booking-request-manager.tsx'
+
 export const TEMPLATES: Record<string, TemplateEntry> = {
+  'booking-request-manager': bookingRequest,
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
 }
