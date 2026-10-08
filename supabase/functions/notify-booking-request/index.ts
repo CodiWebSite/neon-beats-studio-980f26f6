@@ -26,7 +26,18 @@ Deno.serve(async (req) => {
       },
       idempotencyKey: `booking-request-manager-${id}`,
     })
-    return json({ ok: true, result })
+    let confirmation: unknown = { sent: false, reason: 'no_client_email' }
+    const clientEmail = s(r.email)
+    if (clientEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail)) {
+      confirmation = await sendTemplateEmail('booking-confirmation-client', clientEmail, {
+        templateData: {
+          name: s(r.name), eventType: s(r.event_type), eventDate: s(r.event_date),
+          location: s(r.location), guests: s(r.guests), budget: s(r.budget), message: s(r.message),
+        },
+        idempotencyKey: `booking-confirmation-client-${id}`,
+      })
+    }
+    return json({ ok: true, result, confirmation })
   } catch (e) {
     console.error('notify-booking-request failed', (e as Error).message)
     return json({ error: 'send failed' }, 500)

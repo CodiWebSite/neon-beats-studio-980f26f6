@@ -18,9 +18,11 @@ export interface TemplateEntry {
  *   // then add to TEMPLATES: 'welcome': welcomeTemplate
  */
 import { template as bookingRequest } from './booking-request-manager.tsx'
+import { template as bookingConfirmation } from './booking-confirmation-client.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'booking-request-manager': bookingRequest,
+  'booking-confirmation-client': bookingConfirmation,
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
 }
