@@ -6,6 +6,7 @@ import PromotionsSection from "@/components/PromotionsSection";
 import AvailabilitySection from "@/components/AvailabilitySection";
 import AboutSection from "@/components/AboutSection";
 import ContactSection from "@/components/ContactSection";
+import { BookDjFunky } from "@/components/ManagementSection";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 
@@ -24,6 +25,7 @@ const Index = () => {
       <PromotionsSection />
       <GallerySection />
       <AboutSection />
+      <BookDjFunky />
       <ContactSection />
       <Footer />
     </main>

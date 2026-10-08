@@ -18,6 +18,10 @@ type ContactRequest = {
   event_type?: string | null;
   event_date?: string | null;
   message?: string | null;
+  company?: string | null;
+  location?: string | null;
+  guests?: string | null;
+  budget?: string | null;
   created_at: string;
 };
 type PromoItem = { id: string; title: string; date?: string | null; location?: string | null; link?: string | null };
@@ -499,7 +503,7 @@ const Admin = () => {
                 <div key={r.id} className="rounded-lg bg-muted/30 border border-gold/10 p-4">
                   <div className="font-display text-lg">{r.name}</div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {[r.event_type, r.event_date].filter(Boolean).join(" • ")}
+                    {[r.company, r.event_type, r.event_date, r.location, r.guests && `${r.guests} invitați`, r.budget && `Buget: ${r.budget}`].filter(Boolean).join(" • ")}
                   </div>
                   <div className="text-sm mt-2 space-x-3">
                     <a href={`mailto:${r.email}`} className="text-gold hover:underline">{r.email}</a>
