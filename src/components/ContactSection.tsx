@@ -232,11 +232,11 @@ const ContactSection = () => {
                 <div>
                   <div className="text-sm text-muted-foreground">Telefon</div>
                   <div className="flex items-center gap-3">
-                    <a href="tel:+40755649856" className="font-display text-lg text-foreground hover:text-neon-cyan transition-colors">
-                      +40 755 649 856
+                    <a href="tel:+40769291604" className="font-display text-lg text-foreground hover:text-neon-cyan transition-colors">
+                      +40 769 291 604
                     </a>
                     <a
-                      href="https://wa.me/40755649856"
+                      href="https://wa.me/40769291604"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm px-3 py-1 rounded-full border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/10 transition-colors"

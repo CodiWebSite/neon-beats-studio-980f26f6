@@ -77,7 +77,7 @@ const AvailabilitySection = () => {
           </p>
           <div className="mt-4 flex items-center justify-center gap-3">
             <a
-              href="https://wa.me/40755649856"
+              href="https://wa.me/40769291604"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/10 transition"
