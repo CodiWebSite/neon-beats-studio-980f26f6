@@ -119,8 +119,9 @@ const Footer = () => {
                 </a>
               </p>
               <p>
-                <a href="mailto:contact@djfunyevents.ro" className="hover:text-neon-cyan transition-colors">
-                  contact@djfunyevents.ro
+                <span className="block text-xs uppercase tracking-wider opacity-70">Email — se adresează managerului</span>
+                <a href="mailto:manager@djfunkyevents.ro" className="hover:text-neon-cyan transition-colors">
+                  manager@djfunkyevents.ro
                 </a>
               </p>
             </div>

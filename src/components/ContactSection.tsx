@@ -250,9 +250,9 @@ const ContactSection = () => {
                 <Mail className="w-5 h-5 text-neon-magenta" />
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">Email</div>
-                <a href="mailto:contact@djfunyevents.ro" className="font-display text-lg text-foreground hover:text-neon-magenta transition-colors">
-                  contact@djfunyevents.ro
+                <div className="text-sm text-muted-foreground">Email — se adresează managerului</div>
+                <a href="mailto:manager@djfunkyevents.ro" className="font-display text-lg text-foreground hover:text-neon-magenta transition-colors">
+                  manager@djfunkyevents.ro
                 </a>
               </div>
             </div>
