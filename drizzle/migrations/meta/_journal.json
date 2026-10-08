@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791446823361,
+      "tag": "0000_contact_requests_booking_fields",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+ALTER TABLE public.contact_requests ADD COLUMN IF NOT EXISTS company text, ADD COLUMN IF NOT EXISTS location text, ADD COLUMN IF NOT EXISTS guests text, ADD COLUMN IF NOT EXISTS budget text;

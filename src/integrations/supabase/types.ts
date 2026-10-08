@@ -40,33 +40,45 @@ export type Database = {
       }
       contact_requests: {
         Row: {
+          budget: string | null
+          company: string | null
           created_at: string
           email: string
           event_date: string | null
           event_type: string | null
+          guests: string | null
           id: string
+          location: string | null
           message: string | null
           name: string
           phone: string
           updated_at: string
         }
         Insert: {
+          budget?: string | null
+          company?: string | null
           created_at?: string
           email: string
           event_date?: string | null
           event_type?: string | null
+          guests?: string | null
           id?: string
+          location?: string | null
           message?: string | null
           name: string
           phone: string
           updated_at?: string
         }
         Update: {
+          budget?: string | null
+          company?: string | null
           created_at?: string
           email?: string
           event_date?: string | null
           event_type?: string | null
+          guests?: string | null
           id?: string
+          location?: string | null
           message?: string | null
           name?: string
           phone?: string
