@@ -73,6 +73,8 @@ const ContactSection = () => {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Ești gata să transformi evenimentul tău într-o experiență de neuitat? 
             Contactează-ne și hai să discutăm despre planurile tale!
+            <br />
+            <span className="text-foreground">Solicitările se adresează managerului oficial DJ Funky — Izabela Stoica.</span>
           </p>
         </div>
 
