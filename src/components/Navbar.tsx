@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Radio } from "lucide-react";
 import logo from "../../Document.png";
@@ -6,6 +7,7 @@ import logo from "../../Document.png";
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,15 +23,20 @@ const Navbar = () => {
     { href: "#availability", label: "Disponibilitate" },
     { href: "#gallery", label: "Galerie" },
     { href: "#about", label: "Despre" },
+    { href: "/management", label: "Management" },
     { href: "#contact", label: "Contact" },
   ];
 
   const scrollToSection = (href: string) => {
+    setIsMobileMenuOpen(false);
+    if (window.location.pathname !== "/") {
+      navigate("/" + href);
+      return;
+    }
     const element = document.querySelector(href);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
-    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -59,7 +66,7 @@ const Navbar = () => {
           </a>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6 lg:gap-8">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -69,7 +76,7 @@ const Navbar = () => {
                   if (link.href.startsWith("#")) {
                     scrollToSection(link.href);
                   } else {
-                    window.location.href = link.href;
+                    navigate(link.href); setIsMobileMenuOpen(false);
                   }
                 }}
                 className="font-display text-sm tracking-wider text-muted-foreground hover:text-neon-cyan transition-colors duration-300 relative group"
@@ -144,7 +151,7 @@ const Navbar = () => {
                     if (link.href.startsWith("#")) {
                       scrollToSection(link.href);
                     } else {
-                      window.location.href = link.href;
+                      navigate(link.href); setIsMobileMenuOpen(false);
                     }
                   }}
                   className="font-display text-lg tracking-wider text-muted-foreground hover:text-neon-cyan transition-colors duration-300 py-2"

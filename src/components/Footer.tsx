@@ -22,6 +22,7 @@ const Footer = () => {
   ];
 
   const scrollToSection = (href: string) => {
+    if (window.location.pathname !== "/") { window.location.href = "/" + href; return; }
     const element = document.querySelector(href);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
@@ -75,6 +76,8 @@ const Footer = () => {
               Linkuri Rapide
             </h4>
             <ul className="space-y-3">
+              <li><a href="/management" className="text-muted-foreground hover:text-neon-cyan transition-colors duration-300">Management</a></li>
+              <li><a href="https://radio.djfunkyevents.ro" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-neon-cyan transition-colors duration-300">Radio</a></li>
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <a
@@ -121,6 +124,22 @@ const Footer = () => {
                 </a>
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Artist & Official Management */}
+        <div className="grid md:grid-cols-2 gap-8 mb-12 glass-card p-8">
+          <div>
+            <div className="font-display text-2xl font-bold gradient-text mb-2">DJ FUNKY</div>
+            <p className="text-foreground tracking-wider">DJ • Producer • Remixer</p>
+            <p className="text-muted-foreground text-sm mt-1">Afro House • House • Balkan</p>
+            <p className="text-neon-cyan text-xs tracking-[0.3em] uppercase mt-3">Romanian Vibes Worldwide</p>
+          </div>
+          <div className="md:text-right">
+            <div className="text-xs tracking-[0.3em] text-neon-cyan uppercase mb-2">Official Management</div>
+            <p className="font-display text-lg text-foreground">Izabela Stoica — Artist Manager</p>
+            <p className="mt-2"><a href="mailto:manager@djfunkyevents.ro" className="text-muted-foreground hover:text-neon-cyan transition-colors">manager@djfunkyevents.ro</a></p>
+            <p><a href="tel:+40769291604" className="text-muted-foreground hover:text-neon-cyan transition-colors">+40 769 291 604</a></p>
           </div>
         </div>
 
