@@ -73,6 +73,8 @@ const ContactSection = () => {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Ești gata să transformi evenimentul tău într-o experiență de neuitat? 
             Contactează-ne și hai să discutăm despre planurile tale!
+            <br />
+            <span className="text-foreground">Solicitările se adresează managerului oficial DJ Funky — Izabela Stoica.</span>
           </p>
         </div>
 
@@ -250,9 +252,9 @@ const ContactSection = () => {
                 <Mail className="w-5 h-5 text-neon-magenta" />
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">Email</div>
-                <a href="mailto:contact@djfunyevents.ro" className="font-display text-lg text-foreground hover:text-neon-magenta transition-colors">
-                  contact@djfunyevents.ro
+                <div className="text-sm text-muted-foreground">Email — se adresează managerului</div>
+                <a href="mailto:manager@djfunkyevents.ro" className="font-display text-lg text-foreground hover:text-neon-magenta transition-colors">
+                  manager@djfunkyevents.ro
                 </a>
               </div>
             </div>
