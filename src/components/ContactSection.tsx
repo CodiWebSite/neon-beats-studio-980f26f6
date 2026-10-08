@@ -24,7 +24,9 @@ const ContactSection = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const requestId = crypto.randomUUID();
       const { error } = await supabase.from("contact_requests").insert({
+        id: requestId,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -37,6 +39,7 @@ const ContactSection = () => {
         budget: formData.budget || null,
       });
       if (error) throw error;
+      supabase.functions.invoke("notify-booking-request", { body: { id: requestId } }).catch(() => {});
       toast({ title: "Mesaj trimis cu succes! 🎉", description: "Te vom contacta în cel mai scurt timp posibil." });
       setFormData({ name: "", company: "", email: "", phone: "", eventType: "", date: "", location: "", guests: "", budget: "", message: "" });
     } catch (err: any) {
