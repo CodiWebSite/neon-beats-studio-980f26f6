@@ -16,14 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const ContactSection = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    eventType: "",
-    date: "",
-    message: "",
-  });
+  const [formData, setFormData] = useState({ name: "", company: "", email: "", phone: "", eventType: "", date: "", location: "", guests: "", budget: "", message: "" });
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -38,10 +31,14 @@ const ContactSection = () => {
         event_type: formData.eventType || null,
         event_date: formData.date || null,
         message: formData.message || null,
+        company: formData.company || null,
+        location: formData.location || null,
+        guests: formData.guests || null,
+        budget: formData.budget || null,
       });
       if (error) throw error;
       toast({ title: "Mesaj trimis cu succes! 🎉", description: "Te vom contacta în cel mai scurt timp posibil." });
-      setFormData({ name: "", email: "", phone: "", eventType: "", date: "", message: "" });
+      setFormData({ name: "", company: "", email: "", phone: "", eventType: "", date: "", location: "", guests: "", budget: "", message: "" });
     } catch (err: any) {
       toast({ title: "Eroare la trimitere", description: err?.message || "Încearcă din nou sau contactează-ne direct.", variant: "destructive" });
     } finally {
@@ -81,7 +78,7 @@ const ContactSection = () => {
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Contact Form */}
-          <div className="glass-card p-8">
+          <div id="booking-form" className="glass-card p-8 scroll-mt-24">
             <h3 className="font-display text-2xl font-semibold mb-6 text-foreground">
               Solicită o Ofertă
             </h3>
@@ -112,6 +109,11 @@ const ContactSection = () => {
                 </div>
               </div>
 
+              <div>
+                  <label className="block text-sm text-muted-foreground mb-2">Companie / Organizație</label>
+                  <Input name="company" value={formData.company} onChange={handleChange} placeholder="Opțional" className="bg-muted/50 border-white/10 focus:border-neon-cyan" />
+              </div>
+
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-muted-foreground mb-2">Telefon</label>
@@ -134,13 +136,34 @@ const ContactSection = () => {
                     required
                   >
                     <option value="">Selectează...</option>
-                    <option value="nunta">Nuntă</option>
-                    <option value="majorat">Majorat</option>
-                    <option value="corporate">Corporate</option>
-                    <option value="petrecere">Petrecere Privată</option>
-                    <option value="club">Club Show</option>
-                    <option value="altul">Altul</option>
+                    <option value="Nuntă">Nuntă</option>
+                    <option value="Botez">Botez</option>
+                    <option value="Majorat">Majorat</option>
+                    <option value="Cununie">Cununie</option>
+                    <option value="Banchet">Banchet</option>
+                    <option value="Eveniment corporate">Eveniment corporate</option>
+                    <option value="Club">Club</option>
+                    <option value="Festival">Festival</option>
+                    <option value="Eveniment privat">Eveniment privat</option>
+                    <option value="Altul">Altul</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-2">Locația Evenimentului</label>
+                  <Input name="location" type="text" value={formData.location} onChange={handleChange} placeholder="Iași, Hotel ..." className="bg-muted/50 border-white/10 focus:border-neon-cyan" />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-2">Număr estimativ invitați</label>
+                  <Input name="guests" type="text" value={formData.guests} onChange={handleChange} placeholder="150" className="bg-muted/50 border-white/10 focus:border-neon-cyan" />
+                </div>
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-2">Buget</label>
+                  <Input name="budget" type="text" value={formData.budget} onChange={handleChange} placeholder="ex. 1500 €" className="bg-muted/50 border-white/10 focus:border-neon-cyan" />
                 </div>
               </div>
 
@@ -167,15 +190,38 @@ const ContactSection = () => {
                 />
               </div>
 
-              <Button type="submit" variant="neon-filled" size="lg" className="w-full">
+              <Button type="submit" variant="neon-filled" size="lg" className="w-full" disabled={submitting}>
                 <Send className="w-5 h-5 mr-2" />
                 Trimite Cererea
               </Button>
             </form>
+            <p className="text-sm text-muted-foreground text-center mt-6">
+              Solicitarea va fi preluată de managementul oficial DJ Funky.<br />
+              Email: <a href="mailto:manager@djfunkyevents.ro" className="text-neon-cyan hover:underline">manager@djfunkyevents.ro</a>
+            </p>
           </div>
 
           {/* Contact Info */}
           <div className="flex flex-col gap-6">
+            {/* Official Management */}
+            <div className="glass-card p-8 border-neon-cyan/20">
+              <div className="text-xs tracking-[0.3em] text-neon-cyan uppercase mb-2">DJ Funky Management</div>
+              <div className="font-display text-2xl text-foreground">Izabela Stoica — Artist Manager</div>
+              <div className="flex flex-col gap-1 mt-3">
+                <a href="mailto:manager@djfunkyevents.ro" className="text-foreground hover:text-neon-cyan transition-colors">manager@djfunkyevents.ro</a>
+                <a href="tel:+40769291604" className="text-foreground hover:text-neon-cyan transition-colors">+40 769 291 604</a>
+              </div>
+              <p className="text-sm text-muted-foreground mt-4 mb-3">Punctul oficial de contact pentru:</p>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {["Booking-uri", "Evenimente", "Colaborări", "Parteneriate cu branduri", "Remixuri și licențiere", "Presă și media", "Oportunități profesionale", "Solicitări comerciale"].map((t) => (
+                  <span key={t} className="text-xs px-3 py-1 rounded-full border border-white/10 text-muted-foreground">{t}</span>
+                ))}
+              </div>
+              <Button variant="neon-filled" className="w-full" onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}>
+                Book DJ Funky
+              </Button>
+            </div>
+
             {/* Contact Cards */}
               <div className="glass-card p-6 flex items-center gap-4 hover:border-neon-cyan/30 transition-colors duration-300">
                 <div className="w-12 h-12 rounded-xl bg-neon-cyan/10 border border-neon-cyan/20 flex items-center justify-center">
