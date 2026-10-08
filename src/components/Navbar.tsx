@@ -21,6 +21,7 @@ const Navbar = () => {
     { href: "#home", label: "Acasă" },
     { href: "#services", label: "Servicii" },
     { href: "#availability", label: "Disponibilitate" },
+    { href: "#music", label: "Muzică" },
     { href: "#gallery", label: "Galerie" },
     { href: "#about", label: "Despre" },
     { href: "/management", label: "Management" },

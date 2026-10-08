@@ -7,6 +7,7 @@ import AvailabilitySection from "@/components/AvailabilitySection";
 import AboutSection from "@/components/AboutSection";
 import ContactSection from "@/components/ContactSection";
 import { BookDjFunky } from "@/components/ManagementSection";
+import MusicSection from "@/components/MusicSection";
 import Footer from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 
@@ -23,6 +24,7 @@ const Index = () => {
       <ServicesSection />
       <AvailabilitySection />
       <PromotionsSection />
+      <MusicSection />
       <GallerySection />
       <AboutSection />
       <BookDjFunky />
