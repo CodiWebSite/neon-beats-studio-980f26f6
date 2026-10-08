@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/SEO";
+import AdminTracks from "@/components/AdminTracks";
 
 type Status = "free" | "occupied" | "unavailable";
 type AvailabilityMap = Record<string, Status>;
@@ -490,6 +491,8 @@ const Admin = () => {
             </div>
           )}
         </div>
+
+        <AdminTracks />
 
         {/* Promoții */}
         {/* Cereri de ofertă */}

@@ -8,6 +8,20 @@
       "when": 1791446823361,
       "tag": "0000_contact_requests_booking_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791446932855,
+      "tag": "0001_tracks",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791446940842,
+      "tag": "0002_tracks_read_policy",
+      "breakpoints": true
     }
   ]
 }
