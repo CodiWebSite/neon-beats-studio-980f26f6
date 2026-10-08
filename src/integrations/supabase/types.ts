@@ -137,6 +137,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tracks: {
+        Row: {
+          artist: string | null
+          created_at: string
+          file_path: string
+          id: string
+          sort_order: number
+          title: string
+          url: string
+        }
+        Insert: {
+          artist?: string | null
+          created_at?: string
+          file_path: string
+          id?: string
+          sort_order?: number
+          title: string
+          url: string
+        }
+        Update: {
+          artist?: string | null
+          created_at?: string
+          file_path?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
